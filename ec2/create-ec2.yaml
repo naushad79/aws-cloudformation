@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "This cloudformation template creates a simple Amazon Linux AMI, also adding multiple tags"
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-08589eca6dcc9b39c # Amazon Linux AMI Sydney Region, make sure to change the image id based on the Region
+      Tags:
+        - Key: Name
+          Value: Test Instance
+
+        - Key: Created
+          Value: Naushad
