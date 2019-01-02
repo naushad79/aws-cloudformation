@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: "This cloudformation template creates a simple Amazon Linux AMI, also adding multiple tags"
+Description: "This cloudformation template creates a simple EC2 instance using Amazon Linux AMI, also adding multiple tags"
 
 Resources:
   MyEC2Instance:
