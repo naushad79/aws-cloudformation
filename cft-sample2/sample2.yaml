@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "In this example we will see how we can use the Pseudo Parameters"
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-08589eca6dcc9b39c # Amazon Linux AMI Sydney Region, make sure to change the image id based on the Region
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ""
+            - - "WebServer - "
+              - !Ref "AWS::Region"  # Pseudo Parameters will return the Region
+
+        - Key: StackName
+          Value: !Join
+            - ""
+            - - "WebServer - "
+              - !Ref "AWS::StackName" # Pseudo Parameters will return the Stack Name
+
+        - Key: StackID
+          Value: !Join
+            - ""
+            - - "WebServer - "
+              - !Ref "AWS::StackId" # Pseudo Parameters will return the Stack ID
+
+        - Key: Author
+          Value: !Join [ " ", [ Mohamed, Naushad, Binjima ] ] # have used join Intrinsic Function
+
+      SecurityGroups:
+          - !Ref MySecurityGroup
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Public-SSH
+      GroupDescription: Allow ssh connection over port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: Inboud-Public
