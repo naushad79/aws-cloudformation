@@ -32,7 +32,7 @@ Resources:
     Properties:
       InstanceType: t2.micro
       ImageId:
-        Fn::FindInMap:
+        Fn::FindInMap:        # FindInMap Intrinsic Function
         - AWSRegionMap
         - !Ref AWS::Region
         - AMI
