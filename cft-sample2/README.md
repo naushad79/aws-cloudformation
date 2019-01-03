@@ -4,11 +4,11 @@ In this cloudformation template we are using Pseudo Parameters and I have used A
 
 There are  others Pseudo Parameters but I have only used 3 of them
 
-#AWS::Region
+## AWS::Region
 Returns a string representing the AWS Region in which the encompassing resource is being created
 
-#AWS::StackName
+## AWS::StackName
 Returns the name of the stack
 
-#AWS::StackId
+## AWS::StackId
 Returns the ID of the stack
