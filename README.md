@@ -36,4 +36,27 @@ In this cloudformation template EC2 instance will output the DNS name, public ip
 
 You will be able to see the output in the output tab in the cloudformation aws console.
 
-Note: You need to have some KeyPair before starting the cloudformation stack
+
+## cft-sample6
+
+In this cloudformation template EC2 instance will be created and update the operating system and then installs apache on the ec2 Instance
+
+It also creates index.html file in the /var/www/html and updates the files permission
+
+once it's done apache service will be started and also enables the service to start on boot.
+
+once the cloudformation template is completed get the DNS name from the output tab and load it in a new tab.
+
+I have also update the security group enable port 80 access from public
+
+
+## cft-sample7
+
+In this cloudformation template UserData and Helper Scripts are used. It update the instance, installs the AWS CFN Bootstrap and Install the files and packages from the metadata
+
+In the AWS::CloudFormation::Init config section it installs httpd and php. It creates 2 files named /var/www/html/index.php and /var/www/html/phpinfo.php. Also it starts the httpd service and enable at boot.
+
+
+once the cloudformation template is completed go to the output tab, you should be able to find the webpage url and the phpinfo page url.
+
+Security group is updated to allow port 80 access from public.
