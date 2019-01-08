@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "In this cloudformation will be using userdata section to updte the instance and install some packeges at the startup, also have opened port 80 public access"
+
+Parameters:
+  NameOfService:
+    Description: Project name
+    Type: String
+
+  #Make sure you have created some KeyPair from the webconsole
+  KeyName:
+    Description: Select and existing key to enable ssh access
+    Type: AWS::EC2::KeyPair::KeyName
+
+  InstanceType:
+    Description: EC2 Instance types
+    Type: String
+    Default: "t2.micro"
+    AllowedValues:
+    - t1.micro
+    - t2.nano
+    - t2.micro
+    - t2.small
+    - t2.medium
+    - t2.large
+    - m1.small
+    - m1.medium
+    - m1.large
+    - m1.xlarge
+    - m2.xlarge
+    - m2.2xlarge
+    - m2.4xlarge
+    - m3.medium
+    - m3.large
+    - m3.xlarge
+    - m3.2xlarge
+    - m4.large
+    - m4.xlarge
+    - m4.2xlarge
+    - m4.4xlarge
+    - m4.10xlarge
+
+# Find all regions from https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html
+
+Mappings:
+  AWSRegionMap:
+    us-east-1:          # US East (N. Virginia)
+      AMI: ami-009d6802948d06e52
+    us-east-2:          # US East (Ohio)
+      AMI: ami-02e680c4540db351e
+    us-west-1:          # US West (N. California)
+      AMI: ami-011b6930a81cd6aaf
+    us-west-2:          # US West (Oregon)
+      AMI: ami-01bbe152bf19d0289
+    ap-southeast-1:     # Asia Pacific (Singapore)
+      AMI: ami-0b84d2c53ad5250c2
+    ap-southeast-2:     # Asia Pacific (Sydney)
+      AMI: ami-08589eca6dcc9b39c
+    eu-west-1:          # EU (Ireland)
+      AMI: ami-09693313102a30b2
+    eu-west-2:          # EU (London)
+      AMI: ami-0274e11dced17bb5b
+    eu-west-3:          # EU (Paris)
+      AMI: ami-051707cdba246187b
+
+
+Resources:
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+
+    Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              httpd: []
+              php: []
+          files:
+            /var/www/html/index.php:
+              content: !Sub |
+                <?php print "Welcome to the CloudFormation"; ?>
+
+            /var/www/html/phpinfo.php:
+              content: !Sub |
+                <?php
+                phpinfo();
+                ?>
+
+          services:
+            sysvinit:
+              httpd:
+                enabled: true
+                ensureRunning: true
+
+    Properties:
+      InstanceType: !Ref InstanceType
+
+      ImageId:
+        Fn::FindInMap:        # FindInMap Intrinsic Function
+        - AWSRegionMap
+        - !Ref AWS::Region
+        - AMI
+
+      Tags:
+        - Key: Name
+          Value: !Join
+            - ""
+            - - "WebServer - "
+              - !Ref "AWS::Region"  # Pseudo Parameters will return the Region
+
+        - Key: StackName
+          Value: !Ref NameOfService
+
+        - Key: StackID
+          Value: !Join
+            - ""
+            - - "WebServer - "
+              - !Ref "AWS::StackId" # Pseudo Parameters will return the Stack ID
+
+        - Key: Author
+          Value: !Join [ " ", [ Mohamed, Naushad, Binjima ] ] # have used join Intrinsic Function
+
+      KeyName: !Ref KeyName
+
+
+      SecurityGroups:
+          - !Ref MySecurityGroup
+
+      UserData:
+        Fn::Base64:
+          !Sub |
+              #!/bin/bash -ex
+              # ensure system is up to date
+              yum update -y
+              # Ensure AWS CFN Bootstrap is the latest
+              yum install -y aws-cfn-bootstrap
+              # Install the files and packages from the metadata
+              /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource MyEC2Instance  --region ${AWS::Region}
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: Public-SSH
+      GroupDescription: Allow ssh connection over port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+
+      Tags:
+        - Key: Name
+          Value: Inboud-Public
+Outputs:
+  ServerDns:
+    Value: !GetAtt
+      - MyEC2Instance
+      - PublicDnsName
+
+  ServerPublicIP:
+    Value: !GetAtt
+      - MyEC2Instance
+      - PublicIp
+
+  ServerPrivateIP:
+    Value: !GetAtt
+      - MyEC2Instance
+      - PrivateIp
+
+  ServerVpcID:
+    Value: !GetAtt
+      - MySecurityGroup
+      - VpcId
+
+  Website:
+    Description: Home Page of the Website
+    Value: !Sub 'http://${MyEC2Instance.PublicDnsName}'
+
+  PhpInfoPage:
+    Description: The PHP Info page
+    Value: !Sub 'http://${MyEC2Instance.PublicDnsName}/phpinfo.php'
